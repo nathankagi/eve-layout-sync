@@ -9,21 +9,22 @@ pub fn sync_settings(
     exepmt_files: Vec<&str>,
 ) -> io::Result<()> {
     let matching_paths = find_file_paths(file_prefix, path, &exepmt_files)?;
+    if let Some(file_name) = reference_path.file_name() {
+        println!(
+            "Copying data from {} to the following files:",
+            file_name.to_string_lossy()
+        )
+    }
+
     for path in &matching_paths {
         if let Some(file_name) = path.file_name() {
             println!("{}", file_name.to_string_lossy())
         }
     }
-    println!("confirm");
-    replace_files(reference_path, &matching_paths)?;
+    println!();
 
-    Ok(())
-}
-
-pub fn replace_files(reference_path: &Path, paths: &Vec<PathBuf>) -> io::Result<()> {
     let reference_contents = fs::read(reference_path)?;
-
-    for path in paths {
+    for path in &matching_paths {
         fs::write(path, &reference_contents)?;
     }
 

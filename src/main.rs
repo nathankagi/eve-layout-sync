@@ -1,5 +1,5 @@
 use clap::Parser;
-use eve_layout_sync::{copy_directory, find_file_paths, replace_files};
+use eve_layout_sync::{copy_directory, sync_settings};
 use std::io;
 use std::path::PathBuf;
 
@@ -50,28 +50,19 @@ fn main() -> io::Result<()> {
         ));
     }
 
-    // list char files to be replaced
-    let matching_paths = find_file_paths(CHAR_FILE_PREFIX, &args.settings_path, &EXEMPT_FILES)?;
-    for path in &matching_paths {
-        if let Some(file_name) = path.file_name() {
-            println!("{}", file_name.to_string_lossy())
-        }
-    }
-    // confirm
-    println!("confirm");
-    // replace
-    replace_files(&char_path, &matching_paths)?;
+    sync_settings(
+        CHAR_FILE_PREFIX,
+        &args.settings_path,
+        &char_path,
+        EXEMPT_FILES.to_vec(),
+    )?;
 
-    // list user files to be repplaced
-    let matching_paths = find_file_paths(USER_FILE_PREFIX, &args.settings_path, &EXEMPT_FILES)?;
-    for path in &matching_paths {
-        if let Some(file_name) = path.file_name() {
-            println!("{}", file_name.to_string_lossy())
-        }
-    }
-    // confirm
-    println!("confirm");
-    // replace
+    sync_settings(
+        USER_FILE_PREFIX,
+        &args.settings_path,
+        &user_path,
+        EXEMPT_FILES.to_vec(),
+    )?;
 
     Ok(())
 }
