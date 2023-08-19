@@ -1,19 +1,28 @@
 use clap::Parser;
-use std::env;
-use std::error::Error;
-use std::fs;
+use eve_layout_sync::copy_directory;
+use std::io;
+use std::path::PathBuf;
 
-#[derive(Parser)]
-pub struct Config {
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
+    #[arg(short, long)]
     pub user: std::path::PathBuf,
+
+    #[arg(short, long)]
     pub character: std::path::PathBuf,
+
+    #[arg(short, long, default_value = PathBuf::from(".").into_os_string())]
     pub settings_path: std::path::PathBuf,
+
+    #[arg(short, long, default_value = PathBuf::from("./archive/").into_os_string())]
     pub archive_path: std::path::PathBuf,
 }
 
-fn main() {
-    let args = Config::parse();
+fn main() -> io::Result<()> {
+    let args = Args::parse();
 
-    let user = std::fs::read(&args.user).expect("could not read user file");
-    let character = std::fs::read(&args.character).expect("could not read character file");
+    copy_directory(&args.settings_path, &args.archive_path, false)?;
+
+    Ok(())
 }
