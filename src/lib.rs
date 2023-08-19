@@ -1,6 +1,56 @@
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+pub fn sync_settings(
+    file_prefix: &str,
+    path: &PathBuf,
+    reference_path: &Path,
+    exepmt_files: Vec<&str>,
+) -> io::Result<()> {
+    let matching_paths = find_file_paths(file_prefix, path, &exepmt_files)?;
+    for path in &matching_paths {
+        if let Some(file_name) = path.file_name() {
+            println!("{}", file_name.to_string_lossy())
+        }
+    }
+    println!("confirm");
+    replace_files(reference_path, &matching_paths)?;
+
+    Ok(())
+}
+
+pub fn replace_files(reference_path: &Path, paths: &Vec<PathBuf>) -> io::Result<()> {
+    let reference_contents = fs::read(reference_path)?;
+
+    for path in paths {
+        fs::write(path, &reference_contents)?;
+    }
+
+    Ok(())
+}
+
+pub fn find_file_paths(
+    search_string: &str,
+    path: &std::path::PathBuf,
+    file_exceptions: &[&str],
+) -> Result<Vec<PathBuf>, io::Error> {
+    let mut matching_paths = Vec::new();
+
+    if path.is_dir() {
+        for item in fs::read_dir(path).unwrap() {
+            let item = item?;
+            let file_name = item.file_name().to_string_lossy().to_string();
+            let file_path = item.path();
+
+            if !file_exceptions.contains(&file_name.as_str()) && file_name.contains(search_string) {
+                matching_paths.push(file_path);
+            }
+        }
+    }
+
+    Ok(matching_paths)
+}
 
 pub fn copy_directory(src: &Path, dest: &Path, directories: bool) -> io::Result<()> {
     if !src.is_dir() {
